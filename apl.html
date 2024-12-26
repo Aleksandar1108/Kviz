@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WKF ISPITNA PITANJA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #007BFF; /* Blue background */
+			overflow-y: auto;  /* Omogućava skrolovanje celokupne stranice */
+			padding-right: 15px; 
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+			max-height: 80vh; /* Ograniči visinu na 80% ekrana */
+			overflow-y: auto; 
+        }
+        #question-box {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+			 max-height: 60vh; /* Ograniči visinu pitanja */
+			overflow-y: auto;
+			
+			
+        }
+        #button-box {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        } 
+		#results 
+		{ 
+			 max-height: 300px; 
+		     overflow-y: auto;  
+             display: none; 
+		}
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ddd;
+        }
+        .stats {
+            display: none; /* Hide stats during quiz */
+			padding: 20px;
+		    max-height: 80vh; /* Ograniči visinu na 80% visine ekrana */
+		    overflow-y: auto;
+			 margin-top: 20px;
+        }
+        table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        } 
+		
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WKF ISPITNA PITANJA</h1>
+        <div id="question-box">
+            <p id="question">Pritisni "Start" za pocetak testa!</p>
+        </div>
+        <div id="button-box">
+            <button id="start">Start</button>
+            <button id="yes" disabled>Yes</button>
+            <button id="no" disabled>No</button>
+        </div>
+        <div class="stats">
+            <p>Correct Answers: <span id="correct">0</span></p>
+            <p>Wrong Answers: <span id="wrong">0</span></p>
+        </div>
+        <table id="results" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Your Answer</th>
+                    <th>Correct Answer</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const questions = [
+        "Kata team members must all wear the same type of Karate Gi.",
+  "The total time allowed for the Kata and BUNKAI demonstration combined, is six minutes.",
+  "In Kata competition slight variations as taught by the contestant's style (Ryu-ha) are permitted.",
+  "Glasses are forbidden in Kata completion.",
+  "Only one discreet rubber band on a single ponytail is permitted.",
+  "The right to seeding does down flow to lower places in the absence of Competitors eligible for seeding.",
+ "Kata competition can be organized in several formats.",
+  "In all competition format, the number of Competitors cannot exceed 8.",
+  "Judges should look for correct Kihon of the school being demonstrated.",
+ "Team matches consist of competition between teams of 3 or 4 competitors of which 3 compete at the time.",
+ "Conformance is a consistency in the performance of the Kihon of the style (Ryu-ha) in the Kata.",
+ "Should there be any discrepancy between the number and the name of the Kata registered for performance, the name, as per the official WKF Kata list will prevail.",
+"When a team has 4 competitors, all 4 may be used for any round.",
+ "Giving a command to start and finish the Kata by a team member is not considered to be an external cue.",
+  "The mats must form a uniformed coloured surface for Kata competition.",
+  "Judges should look for correct Kihon of the Competitor´s style (Ryu-ha) being demonstrated.",
+  "The panel of Judges can be changed for any single round.",
+  "The total time allowed for the Kata & BUNKAI demonstration combined, is 5 minutes.",
+  "In Kata competition the sleeves of the Karate-gi jacket may not be rolled up.",
+     "It is the responsibility of the coach or competitor to notify the name and the number of the Kata to the score table prior each round. ",
+ "The number of Judges per panel may be reduced to five for any competition.",
+  "A previously performed Kata may be repeated only if used as tiebreaker.",
+  "The Karate-Gi trousers may be slightly shorter so as to only cover half of the shin.",
+  "The total time allowed for the Kata and BUNKAI demonstration combined, is five minutes.",
+  "In the event that there are 3 or less Competitors a single Kata is performed to determine 1st through 3rd place.",
+  "The Judges of a Kata match may not have the same nationality as either of the contestants.",
+  "Although ribbons and other decorations for the hair are not allowed in kumite, they are permissible in Kata.",
+  "In the bouts for medals in Team Kata competition, teams will perform a demonstration of the meaning of the Kata (BUNKAI).",
+  "It is not possible to repeat a Kata in the Round-robin elimination system.",
+  "For competitions not counting for WKF World Ranking or Olympic standing, the number of judges may be reduced to 5.",
+  "The same Kata may never be performed twice in a row in the Round-robin system.",
+  "If an already qualified Competitor is disqualified for misconduct at the end of the Round robin round (SHIKKAKU): The semi-final opponent will access to the final by bye.",
+  "Female competitors must wear a plain white T-shirt beneath the Karate jacket.",
+  "Female competitors can, if they want, wear a plain white T-shirt beneath the Karate jacket.",
+  "The wearing of unauthorised apparel, clothing or equipment is forbidden.",
+  "A discreet rubber band or ponytail retainer is permitted in Kata competition.",
+  "The competition area must be of sufficient size to permit the uninterrupted performance of Kata.",
+  "The matted Kumite areas are not suitable for Kata competition.",
+  "The Karate-gi jacket may be removed during the performance of Kata.",
+  "Audible cues are on the same level as one would penalize a temporary loss of balance.",
+  "Variations as taught by the contestant’s style (Ryu-ha) of Karate will not be permitted.",
+  "The score table must be notified of the choice of Kata prior to each round.",
+  "A team which does not perform the bow at the completion of the BUNKAI performance will be disqualified.",
+  "The number of Kata required is dependent on the number of individual competitors or teams entered.", 
+  "If an already qualified Competitor is disqualified for misconduct at the end of the Round robin round (SHIKKAKU): the bronze medal will be awarded.",
+ "In assessing the performance of a contestant or team the Judges will evaluate the performance based on all criteria.",
+  "There are no specific deviations for those under 14 years of age from the standard rules, but a limitation to the Kata list to less advanced Kata may be used.",
+  "Causing injury by lack of controlled technique during BUNKAI is considered a foul.",
+ "For medal bouts, none of the Judges may have the same nationality, as the competitors.",
+ "Performances are given a score using a scale from 5.0 to 10.0 in increments of 0.1.",
+  "Coin toss is the first choice to resolve the ties.",
+  "There are 6 ways to resolve a tie In Round-robin Elimination System with 4 competitors.",
+  "Strength is one of the criteria of evaluation.",
+  "There are 6 ways to resolve a tie when having elimination system with 8 competitors.",
+  "There are 10 criteria for Kata evaluation.",
+  "Transitional movement is one of the Criteria for evaluation for Kata Performance but not for BUNKAI.",
+ "In BUNKAI performance, transitional movements and control are part of the evaluation.",
+  "Strength, Speed and Balance are some of the criteria of evaluation for Kata and BUNKAI.",
+"Simulated unconsciousness for more than 2 seconds at the time as part of the BUNKAI is considered as foul.",
+ "BUNKAI are to be given equal importance as the Kata itself.",
+  "Excessive bowing before starting the performance is considered a foul.",
+ "Causing injury by lack of controlled technique during BUNKAI is a disqualification.",
+  "Not announcing the Kata, is not considered as disqualification.",
+  "Performing the wrong Kata or announcing the wrong Kata leads to disqualification.",
+  "Stamping the feet, slapping the chest, arms, or Karate-gi, will be taken into account by the Judges when arriving at a decision.",
+  "A competitor will not be disqualified if he does a distinct pause or stop in the performance for several seconds.",
+  "BUNKAI are not to be given equal importance as the Kata itself.",
+  "Kata must start facing the Judges.",
+  "The use of audible cues from any other person, including other team members is considered a foul.",
+  "If the competitor’s belt falls off during the performance of Kata, the competitor will be disqualified",
+  "Failure to follow the instructions of the Chief Judge or other misconduct is considered a foul. ",
+ "Failure to follow the instructions of the Chief Judge or other misconduct leads to disqualification.",
+  "Exceeding the total time limit of 5 minutes duration for Kata and BUNKAI is considered a foul.",
+  "In Team Kata, all three team members must start and finish the Kata facing in the same direction and towards the Chief Judge.",
+  "Kata performance must be realistic in fighting terms and display concentration, power, and potential impact in its techniques.",
+  "Causing injury by lack of controlled technique during BUNKAI is not considered a foul.",
+  "Minor loss of balance must not be considered in the evaluation of the Kata performance.",
+  "Exceeding the total time limit of 5 minutes duration for Kata and BUNKAI leads to disqualification.",
+ "Kata performance must demonstrate strength, balance, and speed.",
+  "Minor loss of balance must be considered in the evaluation of the Kata performance.",
+  "Asynchronous movement, such as delivering a technique before the body transition is completed is considered a foul.",
+  "Inappropriate exhalation will be taken into account by the Judges when arriving at a decision.",
+  "In team Kata, failing to do a movement in unison is not considered a foul.",
+  "Performing a movement in an incorrect or incomplete manner is considered a foul.",
+  "Time wasting, including prolonged marching, excessive bowing or prolonged pause before starting the performance is considered a foul.",
+  "Stamping the feet, slapping the chest, arms, or Karate-gi, are audible cues.",
+  "The use of audible cues is not considered a foul.",
+  "Inappropriate exhalation is not an audible cue.",
+  "Failure to fully execute a block or punching off target is considered a foul.",
+  "Causing injury by lack of controlled technique during BUNKAI is allowed.",
+  "The members of the team must demonstrate competence in all aspects of the Kata performance, as well as synchronisation.",
+  "Commands to start and stop the performance will be taken into account by the Judges when arriving at a decision.",
+  "It is the responsibility of the President of the National Federation to ensure that the Kata as notified to the score table is appropriate for that particular round.",
+  "While performing BUNKAI, after being downed the competitor should either raise to one knee or stand up within 2 seconds.",
+    "Omitting or adding movements - or otherwise substantially change the performance from its original form is a disqualification. ",
+ "Excessive celebration and political or religious demonstrations is considered as disqualification for kumite but not for Kata.",
+  "The Competitor must wait on the tatami for the announcement of the evaluation at the end of performance.",
+  "The competitors can select any Kata from the official Kata list.",
+  "A team which does not perform the bow at the beginning and completion of the performance will be disqualified.",
+  "The use of traditional weapons, ancillary equipment or additional apparel is allowed.",
+  "The performance in individual Kata is evaluated from the bow starting the Kata until the bow ending the Kata.",
+  "Belt coming loose to the extent that it is coming off the hips during the performance is a foul.",
+  "Belt coming loose to the extent that it is coming off the hips during the performance is a disqualification.",
+  "After the bow the Competitor must clearly announce the name of the Kata that is to be performed and then start the performance.",
+  "There are 10 criteria in each Kata evaluation.",
+  "Although performing a scissor takedown technique (KANI BASAMI) to the neck area in performing BUNKAI is prohibited, a scissor takedown to the body is permitted.",
+  "Performing a scissor takedown technique (KANI BASAMI) to the neck area in BUNKAI is not prohibited.",
+  "The Competitors will step back out of the Match Area, following the bows, first “SHOMEN NI REI” and then “OTAGAI NI REI”.",
+  "Audible cues must be considered very serious fouls by the judges in their evaluation of the performance of the Kata.",
+  "The protest can be submitted to a representative of the Appeals Jury by the coach.",
+  "It is the responsibility of the Tatami Manager receiving the protest to gather the Appeals Jury and deposit the protest sum with WKF for any declined protest.",
+  "Each of the three members of Appeal Jury is obliged to give his/her verdict as to the validity of the protest. Abstentions are not acceptable.",
+"In Para-Karate, advertising in the wheelchairs can be placed on the backrest.",
+  "If the protest is accepted, the Appeals Jury will appoint one of its members who will verbally notify the protester that the protest has been accepted.",
+  "There are three general Categories in Para Karate competitions: Visually Impaired,Intellectually Impaired and Wheelchair Users.", 
+  "In Para-Karate, prostheses, canes, crutches, and other equipment used for physical support are allowed in Para-Karate competitions.",
+ "Those Athletes whose disabilities have been classified as Ineligible or who have been considered non-compliant or in violation of competition rules are non-eligible to compete in WKF Para-Karate.",
+ "In Para-Karate, the seven judges will give their scores based on the assessment of the Kata performance and the level of athlete's impairment.",
+ "Para-Karate competitions consist of both Kata and Kumite.",
+ "Wheelchairs with anti-tip wheels are allowed in Para-Karate competitions.",
+ "Classification in Para-Karate consists of an extra point compensation depending on the influence of the particular impairment when performing the Kata.",
+ "In Para-Karate, Medical Diagnostic Forms prove the eligibility of the Athlete’s impairment and are, together with functional testing at the competition, a tool to provide a more accurate classification of the Athlete.",
+ "All Para-Karate competitors are allowed to wear white sport shoes.",
+ "In Para-Karate, in case of additional Classification testing, Doping Control, fire or other need for emergency evacuation, the national coaches are directly responsible for safe removal of the Athletes.",
+ "In Para-Karate, contestants from the Intellectually Impaired category may perform the same Kata in each round.",
+ "Service animals trained and certified to detect life-threatening conditions are not allowed at the external perimeter of the competition area in Para-Karate.",
+ "The Appeals Jury must elaborate a simple protest incident report, describing their findings and state their reason(s) for accepting or rejecting the protest.",
+ "There is 100 Kata on the official Kata list.",
+ "Resolution for ties in Para-Karate, will follow the WKF Kata Competition Rules.",
+ "In Para-Karate, therapy animals or emotional-support animals are allowed in the competition area or its perimeter.",
+ "In Para-Karate, it is allowed for Athletes of Visually Impaired Classes to wear blindfolds with logos or markings from sponsors or manufacturers.",
+ "The straps to fix the legs of wheelchair Athletes in Para-Karate, must be of white color and without logos.",
+ "In Para-Karate, score compensation system by means of Extra Points, must be given by the judging panel to the influence of his or her particular impairment.",
+ "There are three Sport Classes in Individual Para-Karate Kata Competition.",
+ "Visually Impaired Athletes in Para-Karate competition are divided in two categories.",
+ "Juniors/cadets Sport Classes are recommended for Para-Karate development",
+  "In Para-Karate Competitions, blindfolds are required for all Visually Impaired Athletes during the performance.",
+ "Intellectual impaired athletes, in Para-Karate, will perform the Kata standing up. ",
+"Intellectual impaired athletes, in Para-Karate, cannot repeat the Kata",
+  "If the competition area is elevated another meter to a total of 3 meters is required on all sides.",
+  "Any Voluntary religious headwear can be worn. ",
+ "The Karate-Gi jacket must be more than three-quarters thigh length. ",
+ "The Karate-Gi trousers must cover at least two-thirds of the shin. ",
+ "The Karate-Gi jacket sleeve must be no longer than the bend of the wrist. ",
+ "If a contestant’s Karate-Gi jacket sleeves are too long and a suitable replacement cannot be found in time the Referee can allow him to turn them up on the inside.",
+  "Competitors may wear 1 or 2 discreet rubber band or ponytail retainer in their hair. Ribbons, beads and other decorations are prohibited. ",
+ "Earrings are allowed if they are covered with tape. ",
+ "Metallic teeth (dental) braces may be worn at the contestant’s own risk if approved by the Referee and the Official Doctor.",
+  "Contestants must bow properly to each other at the start and end of the bout. ",
+ "The coach may change the team fighting order during a round. ",
+ "If a contestant is injured in an individual match the coach can enter a replacement if he notifies the Organising Commission first.",
+  "Each Judge must be equipped with a red and a blue flag or electronic signal device.",
+  "If two teams have the same number of victories and points, a deciding bout will be held.",
+ "The Match Supervisor (KANSA) will be equipped with only a whistle",
+ "Disqualification by KIKEN means that the contestants are disqualified from that category. ",
+ "Heels of more than 4 cm may not be worn with the uniform. ",
+ "Senior Male bouts are three minutes, and Women, Cadets, and Juniors, two minutes. ",
+ "Kumite team members may wear any type of Karate Gi. ",
+ "Different type of stripes may be used for team members.",
+ "A competitor does not need to change the jacket if ties are torn off during the match.",
+ "Competitors may wear any white Karate Gi.",
+ "A fast combination of CHUDAN Geri and TSUKI each of which score in their own right will be given IPPON.",
+ "In Senior matches a light “glove touch” to the throat need no result in a warning or penalty provided there is no actual injury.",
+ "A kick in the groin will not result in a penalty provided the offender did not do it intentionally.",
+ "Starting 2023, for Competitors under14 years of age, the WKF approved protective helmet is allowed and compulsory from 1.1.2024.",
+ "If SENSHU is withdrawn when it is less than 15 seconds left of the bout, no further SENSHU can be awarded to either competitor.",
+ "Should a competitor that has been awarded SENSHU receives a warning for avoiding combat when there is less than 15 seconds left of the bout – the  competitor will automatically forfeit this advantage. ",
+ "Voluntary religiously headwear must be approved by the WKF.",
+ "The WKF Competition Supervisor, or the Organizing Commission, can allow Coaches to instead of the track suit top to use any t-shirt.",
+ "HANSOKU-CHUI is given when the contestant’s potential for winning has been seriously reduced by the opponent’s foul.",
+ "An “exchange” is the period preceding when the bout is halted, and the clock stopped.",
+ "The weight tolerance admitted for male and female 0.5 kg.",
+ "HANSOKU is imposed for serious rules infractions.",
+ "SHIKKAKU can only be imposed after a warning has been given",
+ "If a contestant acts maliciously, SHIKKAKU and not HANSOKU is the correct penalty.", 
+ "If a contestant acts maliciously, HANSOKU is the correct penalty.",
+ "A competitor can be given SHIKKAKU if the behaviour of the coach or non- combatant members of the contestant’s delegation is considered to harm the prestige and honour of Karate-do. ",
+ "The same tolerance applies to both the upper and lower limits of a weight class.",
+ "For individual competition, the Round-robin system followed by quarterfinals, semi-finals and final is applied. ",
+ "There are five criteria to be met in determining a score. ",
+ "A male team must present minimum five competitors for the initial round.",
+ "Male teams comprise five to seven members with five competing in a round.",
+ "A female team must present minimum two competitors for the initial round. ",
+ "The maximum 32 Competitors per category are divided in 8 groups of 4 Competitors in the Round-robin system.",
+ "If the coach continues to interfere after first warning, the Referee will stop the bout, approach the coach again and ask him/her to leave the tatami.",
+ "If AKA scores just as AO steps outside of the match area, both the score and warning or penalty can be given. ",
+ "If a contestant has been physically propelled from the area, Jogai will be given. ",
+ "In Premier League competition the losers to the finalists in the quarter- and semi-finals compete for the bronze medals.",
+ "In cases where there is a tie between two or more Competitors in a group, having the same number of total points, the first criteria to consider is the highest World Ranking at the date of the competition.",
+ "It is possible for a Competitor to be disqualified from a bout (HANSOKU) and continue the competition.",
+ "A contestant who scores and exits the area before the Referee calls YAME will not receive JOGAI.",
+ "Contestants cannot be given penalties after the time-up bell has signalled the end of a bout.",
+ "In Junior competition any technique to the face, head or neck, which causes injury will be warned or penalised unless it is the recipient’s own fault.",
+ "In Cadet and Junior competition Jodan kicks are allowed to make the lightest touch (“skin touch”) provided there is no injury.",
+ "In Senior competition a light touch is allowed for JODAN punches, and a greater tolerance is allowed for JODAN kicks. ",
+ "An already qualified Competitor cannot be disqualified for misconduct(SHIKKAKU) at the end of the Round-robin.",
+ "If a variation of the competition format other than described in these rules is to be applied for a particular tournament, this has to be clearly announced in the tournament bulletin.",
+ "A bad behaviour from a coach does not cause a SHIKKAKU to his/her competitor and the competitor does not need to be expelled from the match/bout.",
+ "When the Judges see a score, they will immediately signal with joy sticks.",
+ "The referee panel is composed of 1 Tatami Manager, 3 Tatami Manager Assistants.",
+ "The Referee Panel for each match shall consist of one Referee, four Judges and one Match Supervisor.",
+ "If after the bout has started a contestant is found not to be wearing a gum-shield the contestant will be disqualified.",
+ "The Referee will give all commands and make all announcements. ",
+ "Duration of the Kumite bout is: 1.5 minutes for under14 years and younger.",
+ "If three Judges signal a score for AKA, the Referee must stop the bout even if he believes they are mistaken.",
+ "If two or more Judges signal a score for the same competitor the Referee must stop the bout.",
+ "The timing of a bout starts when the Referee gives the signal to start and stops when the Referee calls “YAME” or when the time is up.",
+ "The Referee Panel of a Kumite match shall consist of a Referee, four Judges, a Match Supervisor and a Score Keeper.",
+ "When a competitor slips and falls with the torso not touching the Tatami and is immediately scored upon the opponent will be awarded Ippon.",
+ "The competitor’s coach or its official representative are the only ones allowed to make a protest.",
+ "If the Referee does not hear the time-up signal the Match Supervisor will blow the whistle.",
+ "The Competitors only must bow properly to each other at the start of the bout.",
+ "In individual matches a contestant who withdraws voluntarily from the bout is declared KIKEN and an extra eight points are awarded to the opponent.",
+ "Awareness is the state of continued commitment, which endures after the technique has landed. ",
+ "If the organizer has a check-up of equipment before line-up, it is still KANSA´S responsibility to ensure that the equipment is in accordance with the rules.",
+ "A contestant who stays within the match area may score on a contestant outside the match area.",
+ "ATOSHI BARAKU means “15 seconds of bout time remaining”.",
+ "ATOSHI BARAKU means “10 seconds of bout time remaining”.",
+ "A “skin touch” to the throat is allowed only in Senior competition.",
+ "If there are no points at the end of a bout in team matches the Referee will call for HANTEI.",
+ "Excessive contact after repeated failure to block is a consideration for MUBOBI.",
+ "A contestant may be penalised for exaggeration even when there is an actual injury. ",
+ "The Referee declare the winner; “AO (AKA) NO KACHI”, and if necessary, break the tie in case of HANTEI.",
+ "In the event of a tied score at the end of an inconclusive bout the Referee Panel  (the Referee and the four Judges) will decide the bout by HANTEI.",
+ "When the Referee Panel has made a decision not in accordance with the Rules of Competition, the Match Supervisor (KANSA) will immediately blow his whistle.",
+ "A competitor should not be penalized for being winded (loss of breath as a consequence of a technique) or simply reacting to an impact even if the  technique merited a point by the opponent.",
+ "In team matches there is no extra bout.",
+ "Only the first correctly executed technique of a combination will score. ",
+ "Competitors that appear at the competition area with unauthorized equipment or irregular Karate-Gi will be given one minute to correct the attire. ",
+ "Competitors that are winded as a result of an impact should be allowed time to catch their breath before the bout is resumed.",
+ "JODAN is described as the shoulders and the area above the collar bone.",
+ "IPPON is awarded for JODAN kicks or any techniques against an opponent whose any part of the body other than the feet is in contact with the TATAMI.",
+ "HANSOKU CHUI will be given for feigning of injury. ",
+ "HANSOKU will be given for the first instance of exaggerating an injury.",
+ "A loss of breath by the recipient of a blow after receiving a CHUDAN technique does indicate lack of control.",
+ "A competitor can be given Hansoku directly for exaggerating the effects of injury.",
+ "A technique even if effective, delivered after an order to suspend or halt the bout shall not be scored and may result in a penalty being imposed on the offender.",
+ "In Cadet Kumite JODAN kicks are allowed to make a “skin touch” provided there is no injury.",
+  "Before the start of a match or bout the Tatami Manager should examine the competitor’s medical card.",
+  "If there is an error in charting and the wrong contestants compete this cannot be changed afterwards.",
+  "An effective technique delivered at the same time as the end of the bout is signalled by the buzzer is valid.",
+  "If a contestant is injured and it is considered to be their own fault (MUBOBI), the Referee will decline to give a warning or penalty to the opponent.",
+  "KANSA has no vote or authority in matters of judgments such as whether a score was valid or not.",
+  "YUKO is always awarded for punches on the back.",
+  "“Skin touch” is allowed in categories for Competitors 16 years or older.",
+  "A contestant who does not obey the Referee's orders will be given SHIKKAKU.",
+ "The Score Supervisor will order the Referee to halt the match when he sees a contravention of the Rules of Competition.",
+  "If in a combination, the first technique merits a YUKO and the second merits a penalty, both shall be given.",
+  "Skin touch is defined as touching the target without transferring energy into the head or body.",
+  "It is not possible to score while lying on the floor.",
+  "A competitor not wearing the WKF approved equipment will be given two minutes to change for the approved type.",
+	 "A contestant injured in Kumite and withdrawn under the ten-second rule may not compete in the Kata competition. ",
+ "An injured contestant who has been declared unfit to fight by the Tournament Doctor cannot fight again in that competition.",
+  "If a competitor behaves badly on the competition area after the end of the match or bout, the Referee can still give SHIKKAKU.",
+  "The Match Supervisor has a vote in cases of SHIKKAKU.",
+  "In Male team matches if a team wins three bouts, then the match is over at that point.",
+  "In Female team matches if a team wins two bouts, then the match is over at that point.",
+  "When a contestant seizes the opponent and does not perform an immediate technique or throw the Referee will call “YAME”.",
+  "When a Judge is not sure that a technique actually reached a scoring area s/he may signal for the score.",
+  "A contestant who commits an act which harms the prestige and honour of Karate-Do will be given HANSOKU.",
+  "When an action of a contestant is considered to be dangerous and deliberately violates the rules concerning prohibited behaviour, the contestant will be given Shikkaku.",
+  "Correctly executed techniques executed after the time-up signal are valid.",
+  "Correctly executed techniques executed upon or after “WAKARETE” are valid.",
+  "A point may be signaled even if the Judge cannot see the actual point of impact.",
+  "At HANTEI if three Judges signal victory for AKA and the fourth Judge signals victory for AO, the Referee must give victory for AKA.",
+  "Passivity cannot be given to someone having a lead by point or SENSHU.",
+  "Only the Coach designated for the specific bout is allowed to coach and guide the competitor from the place allocated to the coach close to the competition area.",
+  "If a contestant does not regain his or her feet within ten seconds, the Referee will announce “KIKEN” and “KACHI” to the opponent.",
+  "If a competitor is thrown and lands partly outside the match area, the Referee will immediately call “YAME”. ",
+ "The Competitor may not signal to the Coach the wish for him/her to request a video review. ",
+ "The contestants should be examined outside the tatami.",
+  "KANSA has to blow the whistle if the Judges are holding the joy sticks in the wrong hands.",
+  "Gum-shields (mouth guards) are obligatory for all Kumite contestants.",
+  "After a throw the Referee will allow a maximum of two seconds for a score to be made.",
+  "If a competitor scores with a strong side kick and propels the opponent out of the area, the Referee should award WAZA-ARI and give the opponent a warning or  penalty for Jogai.",
+  "When an official protest is lodged the ensuing matches must be delayed until the result of the protest is given.",
+  "Each Judge will be seated in the corners of the TATAMI.",
+  "When the Referee awards a point for a technique which has caused injury the Match Supervisor should signal for the match to be stopped.",
+  "When the Referee fails to hear the “time-up” bell the Scorekeeper should blow his whistle.",
+  "WAKARETE for breaking up a clinch can be given at any time of the bout.",
+  "When the Referee wants to give SHIKKAKU she/he may call the Judges for a brief consultation.",
+  "When a competitor is injured during a bout in progress and needs medical treatment three minutes will be given in which to receive it, after that the  Referee will decide whether the competitor will be declared unfit to fight or whether more time will be given.",
+  "A contestant who exits the area (JOGAI) with less than 15 seconds of bout time remaining will be given a minimum of CHUI.",
+  "To correct a score given to the wrong contestant the Referee should turn towards the contestant given the score in error, make the sign of TORIMASEN, and then  give the score to the opponent.",
+  "If a competitor scores with a well-controlled CHUDAN Geri, then accidentally punches his opponent in the face causing a slight injury, WAZA-ARI and a warning should be given.",
+  "When an injured contestant has been given medical treatment and the Official Doctor says that the contestant can continue fighting the Referee cannot over rule the Doctor's decision. ",
+ "The Referee can stop the bout even if the Judges do not signal.",
+ "Once WAKARETE is called by the Referee the Coaches do not have the opportunity to make a video request.",
+  "“Avoiding Combat” refers to a situation where a contestant attempts to prevent the opponent from having the opportunity to score by using time wasting  behaviour.",
+ "TSUZUKTETE, unless preceded by WAKARETE, is not used if there is less than 15 seconds left of the bout.",
+ "In team matches if two contestants injure each other and cannot continue and the points score is equal the Referee will announce HIKIWAKE.",
+  "When there are less than 15 seconds of bout time remaining and a losing  competitor, desperately trying to equalise, exits the area (JOGAI) they will be given a minimum of HANSOKU-CHUI.",
+  "Techniques which land below the belt cannot score.",
+  "Techniques, which land on the shoulder blade, can score.",
+  "If AKA accidentally kicks AO on the hip and AO cannot continue the bout, then AO will be given KIKEN.",
+  "If a contestant is obviously out of breath due to lack of endurance, he Referee should stop the match to give him time to recover.",
+  "A contestant who establishes a clear lead of eight points is declared the winner.",
+  "When time is up; the contestant who has scored the most points is declared the winner.",
+  "An otherwise correctly executed technique will be penalized if executed at the same time as WAKARETE has been called.",
+  "There are two degrees of official warnings.",
+  "CHUI is given, up to three times, for smaller infractions.",
+ "HANSOKU CHUI cannot be given if three CHUI has not already been given.",
+ "A warning or penalty for MUBOBI is only given when a competitor is hit or injured through his own fault or negligence",
+  "A competitor who is hit through their own fault and exaggerates the effect should receive a warning or penalty for MUBOBI or exaggeration but not both.",
+  "If a competitor makes a good CHUDAN kick and the opponent catches the leg a score cannot be given.",
+  "A competitor makes a JODAN kick with all six scoring criteria. The opponent puts his hand up to intercept the kick and the hand then lightly hits his own face; the  Referee can give IPPON since the kick was not effectively blocked.",
+  "A male team can compete with only two competitors.",
+  "Authorised advertising for WKF is displayed on the left sleeve of the Karate-Gi.",
+  "National Federations are not allowed to put advertising on the competitor’s Karate-Gi.",
+  "A Kumite competitor who receives KIKEN cannot compete again in that tournament.",
+  "An extra bout is used only for team matches.",
+ "KANSA needs to blow the whistle if the Referee gives a score to a competitor and MUBOBI to the other.",
+  "Serious violation of conduct, discipline, or malicious behavior merits a HANSOKU CHUI.",
+ "In international competitions the Referee must not have the same nationality as either of the competitors although one of the Judges can if both coaches agree.",
+  "The Match Supervisor (KANSA) will line up together with the Referee and the Judges.",
+  "The coaches will be seated outside the safety area, on their respective sides facing towards the official table.",
+  "KANSA does not need to interfere if the Referee gives a score to a competitor and exaggeration to the other.",
+  "In team matches the Panel will rotate for each bout - provided that all hold the required license.",
+  "In team matches the Panel will rotate for each bout only in bouts for medals.",
+  "The Referee can move about the entire tatami including the safety zones.",
+  "Female competitors must have chest protector.",
+  "Female competitors don’t have to have chest protector if they have body protector.",
+  "The red and blue belts must be without any personal embroideries or markings.",
+    "When a situation appears to possibly warrant a disqualification the Referee can call one or more of judges for a brief consultation (FUKUSHIN SHUGO) before  announcing any decision. ",
+ "Contestants must wear a white Karate-Gi without personal embroidery.",
+  "Personal embroidery in the Karate-Gi is allowed only in bouts for medals.",
+  "Where contact is considered by the Referee to be too strong, but does not diminish the Competitor’s chances of winning, a warning (CHUI) can be given.",
+  "Any technique, which results in injury, unless caused by the recipient cause a warning or penalty.",
+  "An obvious overreaction to a contact will receive a CHUI.",
+  "Judges cannot indicate a score or warning before the Referee stops the bout.",
+  "An obvious display of exaggeration will receive a HANSOKU.",
+  "Any instance of feigning an injury, whoever slight, will receive a minimum warning of CHUI.",
+  "An obvious display of any feigning such as staggering around, falling on the floor, standing up and falling down again, and so on, will receive SHIKKAKU directly.",
+  "Any feigning of an injury from a technique that in fact have been determined by the judges as a point will as a minimum result in HANSOKU CHUI.",
+  "If a contestant scores with more than one consecutive technique before YAME, the Judges must show the higher point regardless of which sequence the  techniques scored.",
+  "In team matches, if after the extra bout there are no scores, or it is equal scores with no SENSHU, the match will be decided by HANTEI.",
+ "JOGAI occurs when a contestant exits from the competition area, and it is not caused by the opponent.",
+  "The minimum warning for running away, avoiding combat or/and wasting time during ATOSHI BARAKU is HANSOKU CHUI.",
+  "The pivotal point of the throw must not be above the thrower’s hip level and the opponent must be held onto throughout, so that a safe landing can be made.",
+  "Holding on to the opponent’s Karate Gi is not permitted to break a fall.",
+  "KANSA does not need to interfere if the Referee gives a score for a technique done after the time is up.",
+  "YUKO is worth one point.",
+    "WAZA-ARI is worth two points.", 
+ "IPPON is worth three points.",
+  "It is the duty of the Match Supervisor to ensure before each match or bout that the competitors are wearing the approved equipment.",
+  "It is the duty of the Tatami Manager to ensure before each match or bout that the competitors are wearing the approved equipment.",
+  "Coaches must present their accreditation together with that of their competitor or team to the official table.",
+  "WAZA-ARI is awarded for CHUDAN Kicks.",
+  "YUKO is awarded for any TSUKI or UCHI delivered to any of the seven scoring  areas against a competitor that is standing up or off his/her feet and the torso is not on the mat.",
+  "IPPON is awarded for JODAN GERI and scoring techniques which are delivered on an opponent who has been thrown, has fallen of their own accord, or is  otherwise off their feet.",
+  "Individual bouts cannot be declared a tie.",
+  "Passivity can be given to any Competitor at any time.",
+ "Passivity cannot be given during the first 15 seconds of a bout.",
+  "Simulated attacks with the head, knees, or elbows are offenses.",
+  "Avoiding combat during the last 15 seconds of the bout (ATO SHIBARAKU) will as a minimum result in HANSOKU CHUI and loss of SENSHU.",
+  "The Head Coach of a delegation can protest about a judgment to the members of the Refereeing Panel.",
+  "In a Kumite Tatami two mats are inverted with the red side turned up in a one  meter distance from the mat centre to form a boundary between the contestants.",
+  "Jacket ties must be tied.",
+  "At the beginning of a bout Jackets without ties can be used.",
+  "In individual competition a contestant may be replaced by another after the drawing has taking place.",
+  "At medal bouts male coaches are required to wear a dark suit, shirt and tie.",
+  "At medal bouts female coaches may choose to wear a dress, pantsuit or a combination of jacket and skirt in dark colours.",
+ "At medal bouts female coaches cannot wear religious headwear.",
+	 " A Competitor that refuses following the instructions of the Referee or display a loss of temper will automatically receive HANSOKU. ",
+ "Competitors are not entitled to a period of time between matches, equal to the standard duration time of the match, for purpose of rest.",
+  "Passivity cannot be given after less than the last 15 seconds of the match.",
+  "Any excessive celebration, such as falling on one’s knees etc., political, or  religious expressions, during or immediately after the bout or match, are  prohibited and may be subject to a fine equal to the protest fee determined by EC",
+  "If a Competitor receives KIKEN, or SHIKKAKU, in Round-robin competition all previous bouts are voided from the result.",
+  "Grabbing the opponent’s arm or Karate-GI with one hand is only allowed for attempting an immediately scoring technique or takedown.",
+  "Grabbing the opponent with both hands is never allowed during the match.",
+  "It is the Tatami Manager’s duty to appoint the video review supervisor.",
+  "Should the number of IPPON and WAZA ARI be equal, the decision will be by HANTEI.",
+  "In any individual bout, with equal score, and no SENSHU by either Competitor, the first criteria of the decision will be made based on the higher number of  IPPON scored in the bout.",
+  "If one Competitor has a score indicated by more than one Judge and the score is  different between the Judges, the higher will be applied.",
+  "The Tatami Manager must notify the central table when a Competitor has been stopped from further competition based on the 10-second rule.",
+  "The timekeeper is responsible of starting the 3-minute count for a Competitor who is injured during a bout in progress and requires medical treatment.",
+  "The Referee will call YAME when a contestant seizes the opponent and does not perform an immediate technique or throw.",
+  "The Referee indicates the winner by hand signal and the order (AKA/AO NO KACHI), and by this action also resolve any tie.",
+  "When a contestant seizes the opponent, the Referee will give several seconds for the contestant to perform a throw or technique.",
+  "The Coach / NF representative will request the official protest from the Tatam",		
+   "The Referee can stop the match and give a point without the Judges opinion.",
+  "If the referee does not call the doctor in a 10 second rule situation, Kansa must blow the whistle.",
+  "The winning team is the one with the most bout victories excluding those won by SENSHU.",
+  "The red and blue belts must be no longer than three-quarters thigh length.",
+  "Failure of a Coach / NF representative to deliver a protest in a timely manner can lead to its rejection.",
+  "The correct penalty for feigning an injury when the judges have determined that the technique in fact was a score is HANSOKU.",
+  "The information of officials implicated in the protest is completed by the Tatami Manager.",
+  "Disqualification by KIKEN means that the contestants are disqualified from that category, although it does not affect participation in another category.",
+  "Competitors are entitled to a rest period of time between matches, equal to the standard duration time of the match. The exception is in the case of change of  equipment color, where this time is extended to five minutes.",
+  "In any bout, if after full time the scores are equal, but one contestant has obtained “first unopposed score advantage” (SENSHU), that contestant will be declared the winner.",
+  "By “first unopposed score advantage” (SENSHU) is understood that one  contestant has achieved the first instance of scoring on the opponent without having the opponent also score before the signal.",
+  "Where both contestants score before the signal, no “first unopposed score  advantage” is awarded and both contestants retain the possibility of SENSHU later in the bout.",
+  "In the event that a competitor falls, is thrown, or knocked down and does not regain his or her feet immediately, the Referee will call the doctor, and at the same time start a count to ten indicating his count showing a finger for each second.",
+  "An audible signal will be given by the timekeeper 15 seconds before the actual end of the bout and the Referee will announce “ATOSHI BARAKU”.",
+  "Kansa must remain silent if the referee gives a warning or penalty for passivity during ATOSHI BARAKU.",
+  "In individual categories a bout can be declared a tie",
+   "For all competition system the Coach will be allowed one video review card for the athlete.",
+ "For Round-robin in groups of four the Coach will be allowed one VR card for each participant in the round-robin phase.",
+  "The Competitor may ask the Coach to request a video review discretely.",
+  "The video review can be requested by the Coach in instances where the Judges awarded a lower score than, in the opinion of the Coach, should be for a higher scoring technique.",
+  "The Video Review Supervisor may only award points if scoring before or simultaneously with the other Competitor.",
+  "The last 6 seconds before the bout was stopped for the request will always be evaluated for Video Review.",
+  "If both Coaches requests video review at the same time, the Video Supervisor may only award the point to whoever is deemed to score first.",
+  "Simultaneous scoring techniques can be awarded to both Competitors in Video Review.",
+  "The Video Review Supervisor may not overrule any decision by the corner judges with the exception of SENSHU.",
+ "Tatami manager must supervise that KANSA stops the bout to instruct the Referee regarding a contravention of the Rules of Competition.",
+  "Referee indicates fouls observed, and impose warning and penalties as required by the rules.",
+  "Referee breaks the tie in case of HANTEI.",
+  "it is always KANSA´S responsibility to ensure that the equipment is in accordance with the rules before each bout.",
+  "In the event that the Referee does not hear the time-up bell, KANSA will blow his whistle.",
+  "In two judging system, the Corner Judges will assist the Referee by giving signals for JOGAI, excessive contact, and skin touch for categories where this  contravenes the rules.",
+ "In two judging system, the Referee remain autonomous in applying warnings and penalties.",
+  "In two judging system, if the two Judges, or one Judge and the Referee, show different points for the same competitors, the higher will be given.",
+  "In two judging system, if the two Judges, or one Judge and the Referee show different warnings for the same competitor, the lower will be given",
+        ];
+
+        const correctAnswers = [ false, false, true,true,false,false,true,false,false,true,true,false,false,false,true,true,false,true,true,false,false,false,false,true,true,false,false,true,false,true,true,false,false,true,true,true,true,false,false,true,false,true,true,true,false,true,true,false,true,true,false,false,true,false,true,false,true,true,true,true,true,false,false,true,true,false,false,true,true,true,false,true,false,false,true,false,false,true,true,true,true,true,false,true,true,true,false,false,true,false,true,true,false,true,true,false,true,true,true,false,true,true,false,true,true,true,false,false,true,false,true,true,false,true,true,false,true,false,false,false,true,true,false,true,true,false,true,false,true,false,false,true,false,false,false,true,true,true,false,true,false,false,true,true,false,true,false,true,true,false,false,true,false,true,true,true,false,false,true,true,false,false,false,false,true,true,true,true,false,true,true,false,false,false,true,false,false,true,false,false,true,false,false,true,true,true,false,true,false,true,true,false,true,true,false,false,true,true,false,false,false,false,true,true,true,true,true,false,true,true,false,false,false,true,true,true,true,false,false,false,true,true,true,false,true,true,false,false,false,true,false,false,false,false,false,true,true,true,false,false,true,true,true,false,true,true,false,false,true,false,true,false,true,true,false,false,false,true,true,false,true,false,false,true,true,true,true,false,false,false,true,true,true,false,false,false,false,true,false,true,true,true,false,true,false,false,true,false,true,true,false,true,false,true,false,false,true,true,false,true,true,false,true,false,false,false,false,true,false,false,false,true,false,false,false,false,false,true,false,true,false,false,true,true,false,false,true,true,false,false,false,true,true,true,true,false,true,true,true,false,false,true,true,true,true,false,false,true,false,true,false,false,true,true,true,false,true,true,false,false,true,true,false,false,false,true,true,false,false,false,true,false,true,false,true,false,true,true,false,true,false,true,false,true,true,false,true,true,true,true,true,true,false,true,false,true,false,true,true,true,false,true,false,true,true,true,true,true,true,false,true,true,true,false ]; // Add corresponding answers
+        let selectedQuestions = [];
+        let currentQuestionIndex = -1;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let results = [];
+
+        const questionElement = document.getElementById("question");
+        const startButton = document.getElementById("start");
+        const yesButton = document.getElementById("yes");
+        const noButton = document.getElementById("no");
+        const correctElement = document.getElementById("correct");
+        const wrongElement = document.getElementById("wrong");
+        const resultsTable = document.getElementById("results");
+        const resultsBody = resultsTable.querySelector("tbody");
+
+        function selectRandomQuestions() {
+            const indices = Array.from({ length: questions.length }, (_, i) => i);
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+            return indices.slice(0, 50).map(index => ({
+                question: questions[index],
+                correctAnswer: correctAnswers[index]
+            }));
+        }
+
+        function getRandomQuestion() {
+            if (selectedQuestions.length === 0) {
+                endGame();
+                return;
+            }
+            currentQuestionIndex = 0;
+            const { question } = selectedQuestions[currentQuestionIndex];
+            questionElement.textContent = question;
+        }
+
+        function handleAnswer(answer) {
+            const { question, correctAnswer } = selectedQuestions[currentQuestionIndex];
+            results.push({
+                question,
+                yourAnswer: answer,
+                correctAnswer
+            });
+            if (answer === correctAnswer) {
+                correctCount++;
+                correctElement.textContent = correctCount;
+            } else {
+                wrongCount++;
+                wrongElement.textContent = wrongCount;
+            }
+            selectedQuestions.shift();
+            getRandomQuestion();
+        }
+
+        function endGame() {
+            document.querySelector('.stats').style.display = "block"; // Show stats after quiz
+            questionElement.textContent = "Test je gotov! Ako zelite opet da pokrenete test osvezite(refresujte) stranicu";
+            yesButton.disabled = true;
+            noButton.disabled = true;
+            resultsTable.style.display = "table";
+            results.forEach(({ question, yourAnswer, correctAnswer }) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${question}</td>
+                    <td>${yourAnswer ? "Yes" : "No"}</td>
+                    <td>${correctAnswer ? "Yes" : "No"}</td>
+                `;
+                resultsBody.appendChild(row);
+            });
+        }
+
+        startButton.addEventListener("click", () => {
+            startButton.disabled = true;
+            yesButton.disabled = false;
+            noButton.disabled = false;
+            selectedQuestions = selectRandomQuestions();
+            getRandomQuestion();
+        });
+
+        yesButton.addEventListener("click", () => handleAnswer(true));
+        noButton.addEventListener("click", () => handleAnswer(false));
+    </script>
+</body>
+</html>
